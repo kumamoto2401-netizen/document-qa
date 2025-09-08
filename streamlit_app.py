@@ -35,7 +35,7 @@ else:
     if uploaded_file and question:
 
         # Process the uploaded file and question.
-        document = uploaded_file.read().decode()
+        document = uploaded_file.read().decode(errors="ignore")
         messages = [
             {
                 "role": "user",
@@ -43,9 +43,10 @@ else:
             }
         ]
 
-        # Generate an answer using the OpenAI API.
+        # Generate an answer using the OpenAI API (Gemini Flash 2.5).
+        # Changed model to `gemini-flash-2.5`.
         stream = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gemini-flash-2.5",
             messages=messages,
             stream=True,
         )
