@@ -4,21 +4,23 @@ from openai import OpenAI
 # Show title and description.
 st.title("📄 Document question answering")
 st.write(
-    "Upload a document below and ask a question about it – GPT will answer! "
-    "To use this app, you need to provide an OpenAI API key, which you can get [here](https://platform.openai.com/account/api-keys). "
+    "Upload a document below and ask a question about it – Gemini will answer! "
+    "To use this app, you need to provide your Gemini API key. "
 )
 
-# Ask user for their OpenAI API key via `st.text_input`.
-# Alternatively, you can store the API key in `./.streamlit/secrets.toml` and access it
-# via `st.secrets`, see https://docs.streamlit.io/develop/concepts/connections/secrets-management
-# openai_api_key = st.text_input("OpenAI API Key", type="password")
-openai_api_key = st.secrets.get("openai_api_key")
-if not openai_api_key:
-    st.info("Please add your OpenAI API key to continue.", icon="🗝️")
+# Ask user for their Gemini API key via `st.text_input`.
+# You may also store the API key in `./.streamlit/secrets.toml` using the key name "gemini_api_key".
+gemini_api_key = st.secrets.get("gemini_api_key")
+if not gemini_api_key:
+    st.info("Please add your Gemini API key to continue.", icon="🗝️")
 else:
+    # NOTE: There is no official OpenAI Python client for Gemini. 
+    # You need to use Google's generativeai client or an HTTP client for Gemini API.
+    # For demonstration, we'll show a typical approach using google.generativeai
+    # (You must install google-generativeai: pip install google-generativeai)
+    import google.generativeai as genai
 
-    # Create an OpenAI client.
-    client = OpenAI(api_key=openai_api_key)
+    genai.configure(api_key=gemini_api_key)
 
     # Let the user upload a file via `st.file_uploader`.
     uploaded_file = st.file_uploader(
@@ -33,23 +35,13 @@ else:
     )
 
     if uploaded_file and question:
-
-        # Process the uploaded file and question.
         document = uploaded_file.read().decode(errors="ignore")
-        messages = [
-            {
-                "role": "user",
-                "content": f"Here's a document: {document} \n\n---\n\n {question}",
-            }
-        ]
+        prompt = f"Here's a document: {document} \n\n---\n\n {question}"
 
-        # Generate an answer using the OpenAI API (Gemini Flash 2.5).
-        # Changed model to `gemini-flash-2.5`.
-        stream = client.chat.completions.create(
-            model="gemini-flash-2.5",
-            messages=messages,
-            stream=True,
-        )
+        # Call Gemini 1.5 Flash (gemini-1.5-flash)
+        model = genai.GenerativeModel("gemini-1.5-flash-latest")
 
-        # Stream the response to the app using `st.write_stream`.
-        st.write_stream(stream)
+        # Streaming is not directly supported in google-generativeai as of now,
+        # so we display the result after retrieval.
+        response = model.generate_content(prompt)
+        st.write(response.text)
