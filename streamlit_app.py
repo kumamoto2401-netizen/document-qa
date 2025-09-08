@@ -38,8 +38,8 @@ else:
         document = uploaded_file.read().decode(errors="ignore")
         prompt = f"Here's a document: {document} \n\n---\n\n {question}"
 
-        # Call Gemini 1.5 Flash (gemini-1.5-flash)
-        model = genai.GenerativeModel("gemini-1.5-flash-latest")
+        # Call Gemini 1.5 Flash (gemini-2.5-flash)
+        model = genai.GenerativeModel("gemini-2.5-flash")
 
         # Streaming is not directly supported in google-generativeai as of now,
         # so we display the result after retrieval.
