@@ -19,24 +19,34 @@ else:
     # For demonstration, we'll show a typical approach using google.generativeai
     # (You must install google-generativeai: pip install google-generativeai)
 
-
     genai.configure(api_key=gemini_api_key)
 
-    # Let the user upload a file via `st.file_uploader`.
+    # ドキュメントの内容をセッションに保存
+    # ブラウザリロード後もアップロード済みファイル内容が残るよう、ファイル内容をst.session_stateに必ず保存する
+    if "document" not in st.session_state:
+        st.session_state.document = None
+    if "document_name" not in st.session_state:
+        st.session_state.document_name = None
+
+    # Let the user upload a file via `st.file_uploader`, keeping its value after reload
     uploaded_file = st.file_uploader(
-        "Upload a document (.txt or .md)", type=("txt", "md")
+        "Upload a document (.txt or .md)", type=("txt", "md"), key="file_uploader"
     )
+
+    if uploaded_file is not None:
+        # 新しいファイルがアップロードされた場合のみ内容を保存
+        file_content = uploaded_file.read().decode(errors="ignore")
+        # ファイル内容と名前をセッションに保存
+        st.session_state.document = file_content
+        st.session_state.document_name = uploaded_file.name
+
+    # アップロード済みファイルがあれば表示
+    if st.session_state.document is not None and st.session_state.document_name is not None:
+        st.success(f"アップロード済みファイル: {st.session_state.document_name}")
 
     # チャット履歴をセッションに保存
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
-
-    # ドキュメントの内容をセッションに保存
-    if uploaded_file:
-        document = uploaded_file.read().decode(errors="ignore")
-        st.session_state.document = document
-    elif "document" not in st.session_state:
-        st.session_state.document = None
 
     # チャットUI
     st.write("## チャット")
